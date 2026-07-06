@@ -22,14 +22,14 @@ async function loadAccountDetails() {
   }
 
   const imageUrls = await Promise.all((data.images || []).map(getAccountImageUrl));
-  const mainImg = imageUrls[0] || 'assets/placeholder.svg';
+  const mainImg = imageUrls[0] || 'assetPath('assets/placeholder.svg')';
   const price = data.sell_price || data.price || 0;
   const lang = localStorage.getItem('dp_lang') || 'ar';
 
   detailsBox.innerHTML = `
     <section class="details-grid">
       <div class="gallery">
-        <img id="mainImage" class="main-image" src="${mainImg}" onerror="this.src='assets/placeholder.svg'" alt="${safeText(data.game)}" />
+        <img id="mainImage" class="main-image" src="${mainImg}" onerror="this.src='assetPath('assets/placeholder.svg')'" alt="${safeText(data.game)}" />
         <div class="thumbs">
           ${imageUrls.map(u => `<button onclick="document.getElementById('mainImage').src='${u}'"><img src="${u}" onerror="this.src='assets/placeholder.svg'" /></button>`).join('')}
         </div>
