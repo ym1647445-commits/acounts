@@ -1,5 +1,17 @@
 let allAccounts = [];
 
+const SITE_BASE = location.hostname.includes('github.io')
+  ? '/devplay-accounts-store/'
+  : './';
+
+function assetPath(path) {
+  return SITE_BASE + path.replace(/^\/+/, '');
+}
+
+function fallbackImage() {
+  return assetPath('assets/placeholder.svg');
+}
+
 const grid = document.getElementById('accountsGrid');
 const countText = document.getElementById('countText');
 const searchInput = document.getElementById('searchInput');
