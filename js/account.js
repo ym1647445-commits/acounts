@@ -1,3 +1,10 @@
+const SITE_BASE = location.hostname.includes('github.io')
+  ? '/devplay-accounts-store/'
+  : './';
+
+function assetPath(path) {
+  return SITE_BASE + path.replace(/^\/+/, '');
+}
 const detailsBox = document.getElementById('detailsBox');
 const id = new URLSearchParams(location.search).get('id');
 
