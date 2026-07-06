@@ -13,6 +13,50 @@ window.addEventListener('DOMContentLoaded', async () => {
   await loadAccounts();
 });
 
+function fallbackImage() {
+  return typeof assetPath === 'function' ? assetPath('assets/placeholder.svg') : 'assets/placeholder.svg';
+}
+
+function cleanStoragePath(img) {
+  if (!img) return '';
+
+  if (img.includes('/storage/v1/object/public/account-images/')) {
+    return img.split('/storage/v1/object/public/account-images/')[1];
+  }
+
+  if (img.includes('/storage/v1/object/sign/account-images/')) {
+    return img.split('/storage/v1/object/sign/account-images/')[1].split('?')[0];
+  }
+
+  if (img.startsWith('account-images/')) {
+    return img.replace('account-images/', '');
+  }
+
+  return img;
+}
+
+async function getAccountImageUrl(img) {
+  if (!img) return fallbackImage();
+
+  if (img.startsWith('http')) return img;
+
+  const path = cleanStoragePath(img);
+
+  const signed = await db.storage
+    .from(STORAGE_BUCKETS.accounts)
+    .createSignedUrl(path, 60 * 60);
+
+  if (!signed.error && signed.data?.signedUrl) {
+    return signed.data.signedUrl;
+  }
+
+  const publicUrl = db.storage
+    .from(STORAGE_BUCKETS.accounts)
+    .getPublicUrl(path);
+
+  return publicUrl?.data?.publicUrl || fallbackImage();
+}
+
 function bindFilters() {
   [searchInput, gameFilter, minPrice, maxPrice].forEach(el => el?.addEventListener('input', renderAccounts));
   resetFilters?.addEventListener('click', () => {
@@ -71,6 +115,7 @@ function getFilteredAccounts() {
 async function renderAccounts() {
   const list = getFilteredAccounts();
   const lang = localStorage.getItem('dp_lang') || 'ar';
+
   countText.textContent = lang === 'en'
     ? `Showing ${list.length} accounts`
     : `عرض ${list.length} حساب`;
@@ -93,23 +138,28 @@ async function accountCard(a) {
   return `
     <article class="account-card glass">
       <a class="card-image" href="account.html?id=${a.id}">
-        <img src="${imageUrl}" alt="${safeText(a.game)}" onerror="this.src='assetPath('assets/placeholder.svg')'" />
+        <img src="${imageUrl}" alt="${safeText(a.game)}" onerror="this.src='${fallbackImage()}'" />
         <span class="status-badge">${statusText(a.status)}</span>
       </a>
+
       <div class="card-body">
         <div class="game-row">
           <h3>${safeText(a.account_name || a.game)}</h3>
           <span>${safeText(a.game)}</span>
         </div>
+
         <p class="desc">${safeText((a.description || '').slice(0, 115))}${(a.description || '').length > 115 ? '...' : ''}</p>
+
         <div class="price-row">
           <strong>${money(price)}</strong>
         </div>
+
         <div class="code-box">
           <small>${lang === 'en' ? 'Account code' : 'كود الحساب'}</small>
           <b>${safeText(a.code || '')}</b>
           <button type="button" onclick="navigator.clipboard.writeText('${safeText(a.code || '')}')">نسخ</button>
         </div>
+
         <div class="card-actions">
           <a class="btn ghost" href="account.html?id=${a.id}">${lang === 'en' ? 'Details' : 'التفاصيل'}</a>
           <a class="btn primary" target="_blank" href="${whatsappOrderUrl(a)}">${lang === 'en' ? 'Order WhatsApp' : 'طلب عبر واتساب'}</a>
@@ -120,5 +170,7 @@ async function accountCard(a) {
 }
 
 function skeletonCards() {
-  return Array.from({ length: 6 }).map(() => `<div class="account-card glass skeleton"><div></div><p></p><p></p></div>`).join('');
+  return Array.from({ length: 6 })
+    .map(() => `<div class="account-card glass skeleton"><div></div><p></p><p></p></div>`)
+    .join('');
 }
