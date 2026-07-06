@@ -93,7 +93,7 @@ async function accountCard(a) {
   return `
     <article class="account-card glass">
       <a class="card-image" href="account.html?id=${a.id}">
-        <img src="${imageUrl}" alt="${safeText(a.game)}" onerror="this.src='assets/placeholder.svg'" />
+        <img src="${imageUrl}" alt="${safeText(a.game)}" onerror="this.src='assetPath('assets/placeholder.svg')'" />
         <span class="status-badge">${statusText(a.status)}</span>
       </a>
       <div class="card-body">
