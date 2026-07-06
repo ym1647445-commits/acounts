@@ -44,7 +44,7 @@ function cleanStoragePath(img) {
 }
 
 async function getAccountImageUrl(img) {
-  if (!img) return 'assets/placeholder.svg';
+  if (!img) return 'assetPath('assetPath('assets/placeholder.svg')')';
   if (String(img).startsWith('http')) return img;
 
   const path = cleanStoragePath(img);
@@ -52,7 +52,7 @@ async function getAccountImageUrl(img) {
   if (!signed.error && signed.data?.signedUrl) return signed.data.signedUrl;
 
   const publicUrl = db.storage.from(STORAGE_BUCKETS.accounts).getPublicUrl(path);
-  return publicUrl.data?.publicUrl || 'assets/placeholder.svg';
+  return publicUrl.data?.publicUrl || 'assetPath('assets/placeholder.svg')';
 }
 
 function whatsappOrderUrl(account) {
@@ -63,4 +63,11 @@ function whatsappOrderUrl(account) {
     : `مرحبًا DevPlay Studio\nأريد طلب هذا الحساب:\n\nكود الحساب: ${account.code}\nاللعبة: ${account.game}\nاسم الحساب: ${account.account_name || ''}\nالسعر: ${price} جنيه\n\nهل الحساب متاح؟`;
 
   return `https://wa.me/${DEVPLAY_WHATSAPP}?text=${encodeURIComponent(text)}`;
+}
+const SITE_BASE = location.hostname.includes('github.io')
+  ? '/devplay-accounts-store/'
+  : '/';
+
+function assetPath(path) {
+  return SITE_BASE + path.replace(/^\/+/, '');
 }
